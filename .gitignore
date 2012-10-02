@@ -1,0 +1,7 @@
+Debug/
+*.opensdf
+*.sdf
+*.suo
+*.exe
+*.filters
+*.user
