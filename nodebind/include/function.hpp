@@ -5,6 +5,7 @@
 #include "detail/meta.hpp"
 #include "scope.hpp"
 #include "overloaded.hpp"
+#include "detail/argumenttransform.hpp"
 #include "detail/functiontraits.hpp"
 
 namespace nodebind

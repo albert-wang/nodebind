@@ -1,6 +1,9 @@
 #ifndef NODEBIND_INVOKE_HPP
 #define NODEBIND_INVOKE_HPP
 
+#include "functiontraits.hpp"
+#include "argumenttransform.hpp"
+
 namespace nodebind
 {
 	namespace detail
@@ -18,13 +21,13 @@ namespace nodebind
 		template<typename Function, typename Tuple>
 		typename GetReturnStorage<typename FunctionTraits<Function>::Return>::type freeInvoke(Function func, Tuple& args)
 		{
-			return FreeInvoke< FunctionTraits<Function>::Arity >(func, args);
+			return FreeInvoke< FunctionTraits<Function>::Arity >::invoke(func, args);
 		}
 
 		template<typename Function, typename Tuple>
 		typename GetReturnStorage<typename FunctionTraits<Function>::Return>::type memberInvoke(Function func, Tuple& args)
 		{
-			return MemberInvoke< FunctionTraits<Function>::Arity >(func, args);
+			return MemberInvoke< FunctionTraits<Function>::Arity >::invoke(func, args);
 		}
 	}
 }

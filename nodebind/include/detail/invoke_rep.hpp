@@ -9,7 +9,7 @@
 #		include <boost/preprocessor/punctuation/comma_if.hpp>
 #		include <boost/preprocessor/iteration/iterate.hpp>
 #		define BOOST_PP_ITERATION_LIMITS (0, 9)
-#		define BOOST_PP_FILENAME_1 "nodebind/detail/invoke_rep.hpp"
+#		define BOOST_PP_FILENAME_1 "detail/invoke_rep.hpp"
 #		include BOOST_PP_ITERATE()
 #	endif
 #else
@@ -24,8 +24,8 @@ struct FreeInvoke<N>
 	template<typename Function, typename Tuple>
 	static typename
 		boost::enable_if<
-			boost::is_same<typename FunctionTraits<Function>::Return, void>
-			GetReturnStorage<typename FunctionTraits<Function>::Return>::type
+			boost::is_same<typename FunctionTraits<Function>::Return, void>,
+			typename GetReturnStorage<typename FunctionTraits<Function>::Return>::type
 		>::type
 	invoke(Function ptr, Tuple& args)
 	{
@@ -36,8 +36,8 @@ struct FreeInvoke<N>
 	template<typename Function, typename Tuple>
 	static typename
 		boost::disable_if<
-			boost::is_same<typename FunctionTraits<Function>::Return, void>
-			GetReturnStorage<typename FunctionTraits<Function>::Return>::type
+			boost::is_same<typename FunctionTraits<Function>::Return, void>,
+			typename GetReturnStorage<typename FunctionTraits<Function>::Return>::type
 		>::type
 	invoke(Function ptr, Tuple& args)
 	{
@@ -51,8 +51,8 @@ struct MemberInvoke<N>
 	template<typename Function, typename Tuple>
 	static typename
 		boost::enable_if<
-			boost::is_same<typename FunctionTraits<Function>::Return, void>
-			GetReturnStorage<typename FunctionTraits<Function>::Return>::type
+			boost::is_same<typename FunctionTraits<Function>::Return, void>,
+			typename GetReturnStorage<typename FunctionTraits<Function>::Return>::type
 		>::type
 	invoke(Function ptr, Tuple& args)
 	{
@@ -63,8 +63,8 @@ struct MemberInvoke<N>
 	template<typename Function, typename Tuple>
 	static typename
 		boost::disable_if<
-			boost::is_same<typename FunctionTraits<Function>::Return, void>
-			GetReturnStorage<typename FunctionTraits<Function>::Return>::type
+			boost::is_same<typename FunctionTraits<Function>::Return, void>,
+			typename GetReturnStorage<typename FunctionTraits<Function>::Return>::type
 		>::type
 	invoke(Function ptr, Tuple& args)
 	{

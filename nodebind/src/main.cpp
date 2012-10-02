@@ -4,7 +4,7 @@
 #include "policy.hpp"
 #include "detail/policyutils.hpp"
 #include "detail/argumenttransform.hpp"
-
+#include "detail/invoke.hpp"
 #include "nodebind.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -12,6 +12,7 @@
 
 std::string invoke(int a)
 {
+	std::cout << "Calling invoke with : " << a << "\n";
 	return boost::lexical_cast<std::string>(a);
 }
 
@@ -19,13 +20,9 @@ void init(v8::Handle<v8::Object> target)
 {
 	using namespace nodebind;
 
-	typedef boost::mpl::vector< InOutPolicy<1>, PureOutPolicy<2> > pols;
-	typedef boost::mpl::vector< float, const char&, const bool *, double > args;
-	typedef detail::ReturnTransformation<void, args, pols > res;
-	typedef detail::ArgumentTransformation< args, pols > argtrans;
+	boost::tuple<int> value = boost::make_tuple(42);
+	detail::freeInvoke(invoke, value);
 
-	nodebind::detail::printVector<args>(std::cout, "\n");
-	nodebind::detail::printVector<argtrans::ArgumentStorage>(std::cout, "\n");
 
 	nodebind::Context context = nodebind::open(target);
 

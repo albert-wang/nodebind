@@ -3,13 +3,13 @@
  */
 
 #ifndef BOOST_PP_IS_ITERATING
-#	ifndef FUNCTIONTRAITS_HPP
-#	define FUNCTIONTRAITS_HPP
+#	ifndef NODEBIND_FUNCTIONTRAITSREP_HPP
+#	define NODEBIND_FUNCTIONTRAITSREP_HPP
 #		include <boost/preprocessor/repetition.hpp>
 #		include <boost/preprocessor/punctuation/comma_if.hpp>
 #		include <boost/preprocessor/iteration/iterate.hpp>
 #		define BOOST_PP_ITERATION_LIMITS (1, 9)
-#		define BOOST_PP_FILENAME_1 "nodebind/detail/functiontraits_rep.hpp"
+#		define BOOST_PP_FILENAME_1 "detail/functiontraits_rep.hpp"
 #		include BOOST_PP_ITERATE()
 #	endif
 #else

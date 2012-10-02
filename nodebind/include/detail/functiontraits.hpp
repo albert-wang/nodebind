@@ -1,11 +1,6 @@
-#ifndef NODEBIND_POLICYCONS_HPP
-#define NODEBIND_POLICYCONS_HPP
+#ifndef NODEBIND_FUNCTIONTRAITS_HPP
+#define NODEBIND_FUNCTIONTRAITS_HPP
 #pragma once
-
-#include <boost/mpl/vector.hpp>
-#include <boost/fusion/adapted/boost_tuple.hpp>
-#include <boost/fusion/include/boost_tuple.hpp>
-#include "argumenttransform.hpp"
 
 namespace nodebind
 {
