@@ -65,13 +65,30 @@ namespace nodebind
 			>
 		{};
 
+		
+		struct GetArgumentStorage
+		{
+			template<typename ArgumentType>
+			struct apply
+			{
+				typedef typename boost::mpl::if_< 
+					boost::is_reference<ArgumentType>, 
+					typename boost::add_pointer< typename boost::remove_reference<ArgumentType>::type >::type, 
+					ArgumentType>::type PointeredArgument;
+
+				typedef typename boost::remove_cv<PointeredArgument>::type StandardizedArgument;
+			
+				typedef StandardizedArgument type;
+			};
+		};
+
 		//The return transformation
 		template<typename ReturnType, typename Arguments, typename PolicyList>
 		struct ReturnTransformation
 		{
 			typedef typename ArgumentPolicies<Arguments, PolicyList>::type ArgumentPolicies;
 			
-			// map( map( copy_if(argumentpolifies, hasoutpolicy), takeargument) indirectonce)
+			// map(map(copy_if(argument policies, has-out-policy), take-argument) indirect-once)
 			typedef typename boost::mpl::transform<
 				typename boost::mpl::transform< 
 					typename boost::mpl::copy_if<ArgumentPolicies, HasOutPolicy>::type, 
@@ -105,6 +122,9 @@ namespace nodebind
 				typename boost::mpl::transform<OutParameters, TakeIndex>::type, 
 				boost::mpl::back_inserter< boost::mpl::vector<> >
 			>::type IndexMappings;
+
+			//Storage
+			typedef typename boost::mpl::transform<Arguments, GetArgumentStorage>::type ArgumentStorage;
 		};
 
 		//Combined Transformation
@@ -118,11 +138,11 @@ namespace nodebind
 
 			//This is the signature that is exposed to node.
 			typedef typename TransformedArguments::type ArgumentTypes;
+			typedef typename TransformedArguments::IndexMappings ArgumentIndexMappings; 
 
 			//This is the storage for the C++ method. Same as the actual signature, except all 
-			//References are turned into pointers, 
-
-			typedef typename TransformedArguments::IndexMappings ArgumentIndexMappings; 
+			//References are turned into pointers, and 
+			typedef typename TransformedArguments::ArgumentStorage ArgumentStorage;
 		};
 	}
 }

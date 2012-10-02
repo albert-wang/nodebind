@@ -78,7 +78,7 @@ namespace nodebind
 				static void invoke(Visitor& visit)
 				{
 					typedef typename boost::mpl::at_c<T, I>::type CurrentType;
-					visit(I, N, Holder<CurrentType>());
+					visit.operator()<I, N, CurrentType>();
 
 					VisitorHelper<I + 1, N>::invoke(visit);
 				}
@@ -108,27 +108,27 @@ namespace nodebind
 				stream << "mpl::vector<"; 
 			}
 
-			template<typename T>
-			void operator()(size_t i, size_t n, T)
+			template<size_t Index, size_t Size, typename T>
+			void operator()()
 			{
-				if (i) 
+				if (Index) 
 				{
 					stream <<", ";
 				}
 				
-				stream << typeid(T::type).name();
+				stream << typeid(T).name();
 
-				if (boost::is_const<boost::remove_reference<T::type>::type>::value)
+				if (boost::is_const<boost::remove_reference<T>::type>::value)
 				{
 					stream <<" const ";
 				}
 
-				if (boost::is_reference<T::type>::value)
+				if (boost::is_reference<T>::value)
 				{
 					stream << "&";
 				}
 
-				if (i == n - 1) 
+				if (Index == Size - 1) 
 				{
 					stream << ">";
 				}

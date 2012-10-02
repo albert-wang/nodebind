@@ -25,9 +25,7 @@ void init(v8::Handle<v8::Object> target)
 	typedef detail::ArgumentTransformation< args, pols > argtrans;
 
 	nodebind::detail::printVector<args>(std::cout, "\n");
-	nodebind::detail::printVector<res::type>(std::cout, "\n");
-	nodebind::detail::printVector<argtrans::type>(std::cout, "\n");
-	nodebind::detail::printVector<argtrans::IndexMappings>(std::cout, "\n");
+	nodebind::detail::printVector<argtrans::ArgumentStorage>(std::cout, "\n");
 
 	nodebind::Context context = nodebind::open(target);
 

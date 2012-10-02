@@ -36,12 +36,13 @@ namespace nodebind
 
 			void addScore(int score);
 
-			template<typename T>
-			void operator()(size_t index, size_t, const detail::Holder<T>&)
+			template<typename I, typename N, typename T>
+			void operator()()
 			{
+				size_t index = I:
 				if (isThisCall)
 				{
-					if (index == 0)
+					if (I == 0)
 					{
 						int s = Converter<typename T::Argument>::score(args.This());
 						addScore(s);

@@ -4,6 +4,8 @@
 
 #include "detail/meta.hpp"
 #include "detail/functiontraits.hpp"
+#include "detail/policyutils.hpp"
+#include "invoke.hpp"
 
 namespace nodebind
 {
@@ -67,34 +69,74 @@ namespace nodebind
 			typedef SignatureTransformation<typename Traits::Return, typename Traits::Arguments, PolicyList> Transformed;
 
 			typedef v8::Handle<v8::Value> HValue;
+			typedef typename MakeTuple<typename Transformed::ArgumentStorage>::type ArgumentStorage;
 		public:
 			struct Baton
 			{
 				Function method;
 				typename Transformed::ReturnTypes returnTuple;
-				typename MakeTuple<Traits::Arguments>::type argumentTuple;
+				ArgumentStorage argumentTuple;
 			};
 
-
-			static typename boost::enable_if<Traits::MemberFunction, HValue>::type invoke(const v8::Arguments& args)
+			struct BatonAndWork
 			{
-				//If its a member function, it must have a this-call policy attached.
-				BOOST_STATIC_ASSERT(HasPolicy<PolicyList, ThiscallPolicyBase>::type::value);
+				Baton baton;
+				uv_work_t work;
+			};
+
+			static typename boost::enable_if<Traits::MemberFunction, HValue>::type invoke(Function methd, const v8::Arguments& args)
+			{
+				Baton baton;
+				deserializeArguments(args, baton.argumentTuple);
+
+				boost::get<0>(baton.returnTuple) = memberInvoke(method, baton.argumentTuple);
 			}
 
-			static typename boost::disable_if<Traits::MemberFunction, HValue>::type invoke(const v8::Arguments& args)
+			static typename boost::disable_if<Traits::MemberFunction, HValue>::type invoke(Function method, const v8::Arguments& args)
 			{
-				if (HasPolicy<PolicyList, ThiscallPolicyBase>::type::value)
-				{
+				Baton baton;
+				deserializeArguments(args, baton.argumentTuple);
 
-				}
-				else 
-				{
-
-				}
+				boost::get<0>(baton.returnTuple) = freeInvoke(method, baton.argumentTuple);
 			}
-
 		private:
+
+			//Argument deserialization
+			struct ArgumentDeserializer
+			{
+				typedef typename HasPolicy<PolicyList, ThiscallPolicyBase>::type IsThisCall;
+
+				ArgumentDeserializer(const v8::Arguments& args, ArgumentStorage& out)
+					:args(args)
+					,out(out)
+				{}
+
+				template<typename I, typename N, typename T>
+				void operator()()
+				{
+					size_t index = I;
+					if (IsThisCall::value)
+					{
+						if (I == 0)
+						{
+							boost::get<I>(out) = Converter<T>(args.This());
+						}
+
+						index--;
+					}
+
+					boost::get<I>(out) = Converter<T>(args[index]);
+				}
+
+				const v8::Arguments& args;
+				ArgumentStorage& out;
+			};
+
+			void deserializeArguments(const v8::Arguments& args, ArgumentStorage& out)
+			{
+				ArgumentDeserializer(args, out);
+				IndexedExecute<typename Transformed::ArgumentStorage>(out);
+			}
 		};
 	}
 }
