@@ -68,7 +68,10 @@ namespace nodebind
 
 	Scope::~Scope()
 	{
-		this->invoke(*context);
+		if (context)
+		{
+			this->invoke(*context);
+		}
 	}
 
 	Scope& Scope::operator ,(const Scope& other)

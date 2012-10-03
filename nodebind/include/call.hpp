@@ -5,7 +5,7 @@
 #include "detail/meta.hpp"
 #include "detail/functiontraits.hpp"
 #include "detail/policyutils.hpp"
-#include "invoke.hpp"
+#include "detail/invoke.hpp"
 
 namespace nodebind
 {
@@ -69,12 +69,14 @@ namespace nodebind
 			typedef SignatureTransformation<typename Traits::Return, typename Traits::Arguments, PolicyList> Transformed;
 
 			typedef v8::Handle<v8::Value> HValue;
+
 			typedef typename MakeTuple<typename Transformed::ArgumentStorage>::type ArgumentStorage;
+			typedef typename MakeTuple<typename Transformed::ReturnTypes>::type ReturnStorage;
 		public:
 			struct Baton
 			{
 				Function method;
-				typename Transformed::ReturnTypes returnTuple;
+				ReturnStorage returnTuple;
 				ArgumentStorage argumentTuple;
 			};
 
@@ -84,20 +86,27 @@ namespace nodebind
 				uv_work_t work;
 			};
 
-			static typename boost::enable_if<Traits::MemberFunction, HValue>::type invoke(Function methd, const v8::Arguments& args)
+			template<typename Enabler>
+			static typename boost::enable_if<typename FunctionTraits<Enabler>::MemberFunction, HValue>::type invoke(Enabler methd, const v8::Arguments& args)
 			{
 				Baton baton;
 				deserializeArguments(args, baton.argumentTuple);
 
-				boost::get<0>(baton.returnTuple) = memberInvoke(method, baton.argumentTuple);
+				boost::tuples::get<0>(baton.returnTuple) = memberInvoke(method, baton.argumentTuple);
+
+				//TODO: Reserialize the tuples structure.
+				return v8::Undefined();
 			}
 
-			static typename boost::disable_if<Traits::MemberFunction, HValue>::type invoke(Function method, const v8::Arguments& args)
+			template<typename Enabler>
+			static typename boost::disable_if<typename FunctionTraits<Enabler>::MemberFunction, HValue>::type invoke(Enabler method, const v8::Arguments& args)
 			{
 				Baton baton;
 				deserializeArguments(args, baton.argumentTuple);
 
-				boost::get<0>(baton.returnTuple) = freeInvoke(method, baton.argumentTuple);
+				boost::tuples::get<0>(baton.returnTuple) = freeInvoke(method, baton.argumentTuple);
+
+				return v8::Undefined();
 			}
 		private:
 
@@ -111,7 +120,7 @@ namespace nodebind
 					,out(out)
 				{}
 
-				template<typename I, typename N, typename T>
+				template<size_t I, size_t N, typename T>
 				void operator()()
 				{
 					size_t index = I;
@@ -119,23 +128,23 @@ namespace nodebind
 					{
 						if (I == 0)
 						{
-							boost::get<I>(out) = Converter<T>(args.This());
+							boost::get<I>(out) = Converter<T>::from(args.This());
 						}
 
 						index--;
 					}
 
-					boost::get<I>(out) = Converter<T>(args[index]);
+					boost::get<I>(out) = Converter<T>::from(args[index]);
 				}
 
 				const v8::Arguments& args;
 				ArgumentStorage& out;
 			};
 
-			void deserializeArguments(const v8::Arguments& args, ArgumentStorage& out)
+			static void deserializeArguments(const v8::Arguments& args, ArgumentStorage& out)
 			{
-				ArgumentDeserializer(args, out);
-				IndexedExecute<typename Transformed::ArgumentStorage>(out);
+				ArgumentDeserializer deserializer(args, out);
+				IndexedExecute<typename Transformed::ArgumentStorage>::invoke(deserializer);
 			}
 		};
 	}

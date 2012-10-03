@@ -8,6 +8,7 @@
 #include "detail/argumenttransform.hpp"
 #include "detail/functiontraits.hpp"
 #include "converter.hpp"
+#include "call.hpp"
 
 namespace nodebind
 {
@@ -68,7 +69,7 @@ namespace nodebind
 
 			v8::Handle<v8::Value> invoke(const v8::Arguments& args)
 			{
-				return v8::Undefined();
+				return GenericInvoke<FunctionPointer, PolicyList>::invoke(function, args);
 			}
 		private:
 			FunctionPointer function;
