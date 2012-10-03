@@ -7,45 +7,27 @@
 #include "overloaded.hpp"
 #include "detail/argumenttransform.hpp"
 #include "detail/functiontraits.hpp"
+#include "converter.hpp"
 
 namespace nodebind
 {
 	namespace detail
 	{
-		template<typename FunctionPointer, typename PolicyList>
-		class FunctionRegistration : public Registration
-		{
-		public:
-			FunctionRegistration(const char * name, FunctionPointer func)
-				:name(name)
-				,function(func)
-			{}
-
-			void invoke(Context& ctx)
-			{
-				//OverloadedFunctionResolver * resolver = ctx.getOverloadedFunctionResolver(name);
-				//resolver->add(name, func);
-			}
-		private:
-			const char * name;
-			FunctionPointer function;
-		};
-
 		struct ArgumentScore
 		{
 			ArgumentScore(const v8::Arguments& args, bool isThisCall);
 
 			void addScore(int score);
 
-			template<typename I, typename N, typename T>
+			template<size_t I, size_t N, typename T>
 			void operator()()
 			{
-				size_t index = I:
+				size_t index = I;
 				if (isThisCall)
 				{
 					if (I == 0)
 					{
-						int s = Converter<typename T::Argument>::score(args.This());
+						int s = Converter<T>::score(args.This());
 						addScore(s);
 						return;
 					}
@@ -54,7 +36,7 @@ namespace nodebind
 					index--;
 				}
 
-				int s = Converter<typename T::Argument>::score(args[index]);
+				int s = Converter<T>::score(args[index]);
 				addScore(s);
 			}
 
@@ -70,28 +52,51 @@ namespace nodebind
 			typedef FunctionTraits<FunctionPointer> Traits;
 			typedef SignatureTransformation<typename Traits::Return, typename Traits::Arguments, PolicyList> Transformed;
 
+			FreeFunction(FunctionPointer function)
+				:function(function)
+			{}
+
 			int score(const v8::Arguments& args) 
 			{
 				bool thiscall = detail::HasPolicy<PolicyList, ThiscallPolicyBase>::type::value;
 				ArgumentScore score(args, thiscall);
 
-				IndexedExecute<Transformed::TransformedArguments>::invoke(score);
+				IndexedExecute<Transformed::ArgumentTypes>::invoke(score);
 
 				return score.score;
 			}
 
-			v8::Handle<v8::Object> invoke(const v8::Arguments& args)
+			v8::Handle<v8::Value> invoke(const v8::Arguments& args)
 			{
-
+				return v8::Undefined();
 			}
+		private:
+			FunctionPointer function;
 		};
+
+		template<typename FunctionPointer, typename PolicyList>
+		class FunctionRegistration : public Registration
+		{
+		public:
+			FunctionRegistration(const char * name, FunctionPointer func)
+				:name(name)
+				,function(func)
+			{}
+
+			void invoke(Context& ctx)
+			{
+				OverloadedFunctionResolver * resolver = ctx.findOverloadedFunction(name);
+				resolver->add(new FreeFunction<FunctionPointer, PolicyList>(function));
+			}
+		private:
+			const char * name;
+			FunctionPointer function;
+		};
+
 
 		template<typename FunctionPointer, typename PolicyList> 
 		detail::Registration * defineFunction(const char * name, FunctionPointer ptr)
 		{
-			std::cout << "Registering function: " << name << " with signature " << typeid(FunctionPointer).name() << " and policy list: ";
-			detail::printVector<PolicyList>(std::cout, "\n");
-
 			return new FunctionRegistration<FunctionPointer, PolicyList>(name, ptr);
 		}
 	}

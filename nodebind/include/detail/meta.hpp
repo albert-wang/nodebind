@@ -6,6 +6,7 @@
 #include <uv.h>
 
 #include <vector>
+#include <map>
 #include <string>
 
 #include <boost/utility/enable_if.hpp>

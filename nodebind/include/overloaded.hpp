@@ -18,7 +18,10 @@ namespace nodebind
 	{
 	public:
 		static v8::Handle<v8::Value> invoke(const v8::Arguments& args);
+
+		void add(OverloadedFunction *);
 	private:
+		std::vector<OverloadedFunction *> functions;
 	};
 }
 #endif

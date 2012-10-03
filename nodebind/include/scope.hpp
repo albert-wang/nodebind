@@ -6,9 +6,15 @@
 
 namespace nodebind
 {
+	class OverloadedFunctionResolver;
+
+
 	struct Context
 	{
 		v8::Handle<v8::Object> target;
+		
+		std::map<std::string, OverloadedFunctionResolver *> resolvers;
+		OverloadedFunctionResolver * findOverloadedFunction(const char * name);
 	};
 
 	class Scope;

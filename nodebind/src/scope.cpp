@@ -1,4 +1,5 @@
 #include "scope.hpp"
+#include "overloaded.hpp"
 
 namespace nodebind
 {
@@ -32,6 +33,26 @@ namespace nodebind
 		void ScopeRegistration::invoke(Context& ctx)
 		{
 			scope.invoke(ctx);
+		}
+	}
+
+	OverloadedFunctionResolver * Context::findOverloadedFunction(const char * name)
+	{
+		std::map<std::string, OverloadedFunctionResolver *>::iterator it = resolvers.find(name);
+		if (it == resolvers.end())
+		{
+			OverloadedFunctionResolver * result = new OverloadedFunctionResolver();
+
+			v8::Local<v8::Value> resolverValue = v8::External::Wrap(result);
+			v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(&OverloadedFunctionResolver::invoke, resolverValue);
+
+			target->Set(v8::String::NewSymbol(name), tpl->GetFunction());
+			resolvers.insert(std::make_pair(std::string(name), result));
+
+			return result;
+		} else 
+		{
+			return it->second;
 		}
 	}
 

@@ -6,6 +6,7 @@
 #include "detail/argumenttransform.hpp"
 #include "detail/invoke.hpp"
 #include "nodebind.hpp"
+#include "primitiveconverters.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <string>
@@ -30,6 +31,4 @@ void init(v8::Handle<v8::Object> target)
 		[
 			nodebind::def("itoa", invoke)
 		];
-
-	target->Set(v8::String::NewSymbol("Hello"), v8::String::New("Hello!"));
 }
